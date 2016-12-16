@@ -1,0 +1,24 @@
+{
+  "name": "@wildpeaks/webpack-assets-plugin",
+  "version": "1.2.0",
+  "description": "Webpack plugin to add arbitrary files to the output",
+  "main": "src/AssetsPlugin.js",
+  "files": [
+    "src/AssetsPlugin.js"
+  ],
+  "repository": "https://github.com/wildpeaks/package-webpack-assets-plugin",
+  "keywords": [
+    "wildpeaks",
+    "webpack",
+    "assets"
+  ],
+  "author": "Cecile Muller",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wildpeaks/package-webpack-assets-plugin/issues"
+  },
+  "homepage": "https://github.com/wildpeaks/package-webpack-assets-plugin#readme",
+  "dependencies": {
+    "async": "^2.1.4"
+  }
+}
