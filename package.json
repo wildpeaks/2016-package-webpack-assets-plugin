@@ -10,7 +10,8 @@
     "test/fixtures/file1.txt",
     "test/fixtures/file2.txt",
     "test/fixtures/file3.txt",
-    "test/fixtures/extras/file4.txt"
+    "test/fixtures/extras/file4.txt",
+    "test/fixtures/file5.png"
   ],
   "scripts": {
     "test": "mocha"

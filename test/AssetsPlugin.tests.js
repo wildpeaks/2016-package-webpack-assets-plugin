@@ -11,7 +11,7 @@ const AssetsPlugin = require('..');
 const outputFolder = path.join(__dirname, 'output');
 
 
-function test_text_files({outputPath, publicPath, files, contents}, done){
+function test_text_files({outputPath, publicPath, expectedFiles, expectedContents}, done){
 	const config = {
 		target: 'web',
 		context: __dirname,
@@ -38,20 +38,70 @@ function test_text_files({outputPath, publicPath, files, contents}, done){
 	try {
 		webpack(config, buildError => {
 			strictEqual(buildError, null, 'No build error');
-			rreaddir(outputFolder, (readdirError, generatedFiles) => {
+			rreaddir(outputFolder, (readdirError, actualFiles) => {
 				deepStrictEqual(
-					generatedFiles.sort(),
-					files.map(filename => path.join(outputFolder, filename)).sort(),
+					actualFiles.sort(),
+					expectedFiles.map(filename => path.join(outputFolder, filename)).sort(),
 					'Generated all expected files, and only those files'
 				);
 
-				for (const filename in contents){
+				for (const filename in expectedContents){
 					strictEqual(
-						contents[filename],
+						expectedContents[filename],
 						fs.readFileSync(path.join(outputFolder, filename), 'utf8'),
 						`${filename} has contains the expected text`
 					);
 				}
+
+				done();
+			});
+		});
+	} catch(e){
+		throws = true;
+	}
+	strictEqual(throws, false, `Webpack doesn't throw an Error`);
+}
+
+
+function test_binary_files(done){
+	const config = {
+		target: 'web',
+		context: __dirname,
+		entry: './fixtures/entry.js',
+		output: {
+			filename: 'bundle.js',
+			path: outputFolder,
+			publicPath: ''
+		},
+		plugins: [
+			new AssetsPlugin({
+				'fixtures/file5.png': 'file5.png'
+			})
+		],
+		performance: {
+			hints: false
+		}
+	};
+
+	let throws = false;
+	try {
+		webpack(config, buildError => {
+			strictEqual(buildError, null, 'No build error');
+			rreaddir(outputFolder, (readdirError, actualFiles) => {
+				const expectedFiles = ['bundle.js', 'file5.png'];
+				deepStrictEqual(
+					actualFiles.sort(),
+					expectedFiles.map(filename => path.join(outputFolder, filename)).sort(),
+					'Generated all expected files, and only those files'
+				);
+
+				const actualContents = fs.readFileSync(path.join(outputFolder, 'file5.png'));
+				const expectedContents = fs.readFileSync(path.join(__dirname, 'fixtures/file5.png'));
+				strictEqual(
+					expectedContents.equals(actualContents),
+					true,
+					`file5.png has contains the expected contents`
+				);
 
 				done();
 			});
@@ -79,14 +129,14 @@ describe('@wildpeaks/webpack-assets-plugin', /* @this */ function(){
 	it('Text files', test_text_files.bind(this, {
 		outputPath: outputFolder,
 		publicPath: '',
-		files: [
+		expectedFiles: [
 			'bundle.js',
 			'file1.txt',
 			'file2-renamed.txt',
 			'subfolder/file3.txt',
 			'file4.txt'
 		],
-		contents: {
+		expectedContents: {
 			'file1.txt': 'FILE 1',
 			'file2-renamed.txt': 'FILE 2',
 			'subfolder/file3.txt': 'FILE 3',
@@ -94,19 +144,19 @@ describe('@wildpeaks/webpack-assets-plugin', /* @this */ function(){
 		}
 	}));
 
-	// it('Binary files', test_binary_files);
+	it('Binary files', test_binary_files);
 
 	it('output.publicPath', test_text_files.bind(this, {
 		outputPath: outputFolder,
 		publicPath: 'mypubpath',
-		files: [
+		expectedFiles: [
 			'bundle.js',
 			'file1.txt',
 			'file2-renamed.txt',
 			'subfolder/file3.txt',
 			'file4.txt'
 		],
-		contents: {
+		expectedContents: {
 			'file1.txt': 'FILE 1',
 			'file2-renamed.txt': 'FILE 2',
 			'subfolder/file3.txt': 'FILE 3',
@@ -117,14 +167,14 @@ describe('@wildpeaks/webpack-assets-plugin', /* @this */ function(){
 	it('output.path', test_text_files.bind(this, {
 		outputPath: path.join(outputFolder, 'myoutpath'),
 		publicPath: '',
-		files: [
+		expectedFiles: [
 			'myoutpath/bundle.js',
 			'myoutpath/file1.txt',
 			'myoutpath/file2-renamed.txt',
 			'myoutpath/subfolder/file3.txt',
 			'myoutpath/file4.txt'
 		],
-		contents: {
+		expectedContents: {
 			'myoutpath/file1.txt': 'FILE 1',
 			'myoutpath/file2-renamed.txt': 'FILE 2',
 			'myoutpath/subfolder/file3.txt': 'FILE 3',
